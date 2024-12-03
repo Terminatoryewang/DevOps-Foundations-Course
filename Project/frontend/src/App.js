@@ -1,6 +1,4 @@
-import React, { useState } from 'react';
-import axios from 'axios';
-import './App.css'; 
+
 /*
 App: Calculator application with basic arithmetic operations and few advanced operations like logarithms and square roots.
 NOTE: The code is not 100% complete and flawless. There is room for improvement. These could include:
@@ -27,26 +25,30 @@ TODO: Enhancements
 [6] Add a feature to copy the result in to the clipboard directly from the calculator display.
 [7] Add unit tests for the frontend to ensure reliability.
 */
+import React, { useState, useEffect, useCallback } from 'react';
+import axios from 'axios';
+import './App.css';
+
 function App() {
-  // State variables for calculator functionality
   const [calculator_display, set_calculator_display] = useState('0'); // Current display value
-  const [first_operand, set_first_operand] = useState(null); 
-  const [current_operation, set_current_operation] = useState(null);
-  const [awaiting_second_operand, set_awaiting_second_operand] = useState(false);
-  const [is_calculation_complete, set_is_calculation_complete] = useState(false); // Flag for calculation state
+  const [first_operand, set_first_operand] = useState(null); // First operand
+  const [current_operation, set_current_operation] = useState(null); // Current operation
+  const [awaiting_second_operand, set_awaiting_second_operand] = useState(false); // Awaiting second operand
+  const [is_calculation_complete, set_is_calculation_complete] = useState(false); // Calculation complete flag
+  const [history, set_history] = useState([]); // Calculation history
 
-  // Helper Function to format large numbers for display after operations
-  const format_large_number = (number) => {
-    // If number is within printable limit return number as is.
-    if (Math.abs(number) < 1e15 && Math.abs(number) > 1e-6) {
-      return number.toString();
+  // Helper function to format large numbers for display
+  const format_large_number = useCallback((number) => {
+    if (number > Number.MAX_SAFE_INTEGER || number < Number.MIN_SAFE_INTEGER) {
+      return 'Out of Range'; // Handle extremely large numbers
     }
-    // For very large or very small numbers convert to exponential notation with 10 digits maximum 
-    return number.toExponential(10);
-  };
+    return Math.abs(number) < 1e15 && Math.abs(number) > 1e-6
+      ? number.toString()
+      : number.toExponential(10); // Format for small or large numbers
+  }, []);
 
-  // Helper Function to get the symbol for each operation
-  const get_operation_symbol = (operation) => {
+  // Helper function to map operation names to symbols
+  const get_operation_symbol = useCallback((operation) => {
     switch (operation) {
       case 'add': return '+';
       case 'subtract': return '-';
@@ -54,160 +56,155 @@ function App() {
       case 'divide': return '÷';
       default: return '';
     }
-  };  
-  
-  // Handle number [0 to 9] button clicks
-  const handle_number_input = (input_number) => {
-    // When handling the inputs if second number is not yet received or if 'equals' sign is not clicked 
+  }, []);
+
+  // Handle number input
+  const handle_number_input = useCallback((input_number) => {
+    if (calculator_display.startsWith('Error')) {
+      set_calculator_display(input_number);
+      set_awaiting_second_operand(false);
+      set_is_calculation_complete(false);
+      return;
+    }
+
     if (awaiting_second_operand || is_calculation_complete) {
       set_calculator_display(input_number);
       set_awaiting_second_operand(false);
       set_is_calculation_complete(false);
     } else {
-      // If user entered only decimal then convert it to 0
-      if (input_number === '.') {
-        if (!calculator_display.includes('.')) {
-          set_calculator_display(calculator_display === '0' ? '0.' : calculator_display + input_number);
-        }
-      } else {
-        set_calculator_display(calculator_display === '0' ? input_number : calculator_display + input_number);
-      }
+      if (input_number === '.' && calculator_display.includes('.')) return; // Prevent multiple decimals
+      if (calculator_display.includes('.') && calculator_display.split('.')[1]?.length >= 6) return; // Limit decimals
+      set_calculator_display(calculator_display === '0' ? input_number : calculator_display + input_number);
     }
-  };
+  }, [calculator_display, awaiting_second_operand, is_calculation_complete]);
 
-  // Handle operation [Eg.: +,-,x, etc] button clicks by setting first_operand, operation type, second_operand, and operation_status
-  // When a operation sign is clicked then await second number
-  const handle_operation_click = (operation) => {
+  // Handle operation buttons
+  const handle_operation_click = useCallback((operation) => {
+    if (calculator_display.startsWith('Error')) return;
     set_first_operand(parseFloat(calculator_display));
     set_current_operation(operation);
     set_awaiting_second_operand(true);
     set_is_calculation_complete(false);
-  };
+  }, [calculator_display]);
 
-  // Toggle the negative sign of the current number (+/-)
-  const toggle_sign = () => {
-    set_calculator_display(num_on_display => {
-      if (num_on_display === '0') return num_on_display;
-      return num_on_display.startsWith('-') ? num_on_display.slice(1) : '-' + num_on_display;
-    });
-  };
- 
-  // Perform calculation and display the result
-  const calculate_result = async () => {
-    // If first_operand and operation type not found then do nothing
-    if (first_operand === null || current_operation === null) return;
+  // Calculate the result
+  const calculate_result = useCallback(async () => {
+    if (calculator_display.startsWith('Error') || first_operand === null || current_operation === null) return;
 
     try {
-      // Request backend API with operands and operation type to get results
       const api_response = await axios.post(`http://localhost:5000/api/${current_operation}`, {
         number_1: first_operand,
-        number_2: parseFloat(calculator_display)
+        number_2: parseFloat(calculator_display),
       });
-      // Format the returned result from API in case if large number
       const formatted_result = format_large_number(api_response.data.result);
       set_calculator_display(formatted_result);
+      set_history((prev) => [
+        ...prev,
+        `${first_operand} ${get_operation_symbol(current_operation)} ${calculator_display} = ${formatted_result}`,
+      ]);
       set_is_calculation_complete(true);
     } catch (error) {
-      // If invalid operation then display error
-      if (error.response?.data?.error) {
-        set_calculator_display('Error: ' + error.response.data.error);
-      } else {
-        set_calculator_display('Error');
-      }
-      set_is_calculation_complete(false);
+      set_calculator_display(error.response?.data?.error ? `Error: ${error.response.data.error}` : 'Error');
     }
 
     set_first_operand(null);
     set_current_operation(null);
-  };
-  
-  // Clear the calculator display by clearing the calculator variables. [Reset display]
+  }, [calculator_display, first_operand, current_operation, format_large_number, get_operation_symbol]);
+
+  // Clear the calculator display and reset state
   const clear_calculator = () => {
     set_calculator_display('0');
     set_first_operand(null);
     set_current_operation(null);
     set_awaiting_second_operand(false);
+    set_is_calculation_complete(false);
   };
 
-  // Handle advanced operations (Eg.: sqrt, log)
-  const perform_advanced_operation = async (operation) => {
+  // Perform advanced operations
+  const perform_advanced_operation = useCallback(async (operation) => {
     try {
-      let api_endpoint = '';
-      let request_payload = {};
-
-      // Create the API request to send to backend API
-      switch (operation) {
-        case 'sqrt':
-          api_endpoint = 'sqrt';
-          request_payload = { number: parseFloat(calculator_display) };
-          break;
-        case 'log':
-          api_endpoint = 'log';
-          request_payload = { number: parseFloat(calculator_display) };
-          break;
-        default:
-          return;
-      }
-
-      // Request backend API with operand and operation type to get results
-      const api_response = await axios.post(`http://localhost:5000/api/${api_endpoint}`, request_payload);
-      // Format the returned result from API in case if large number
+      const api_response = await axios.post(`http://localhost:5000/api/${operation}`, {
+        number: parseFloat(calculator_display),
+      });
       const formatted_result = format_large_number(api_response.data.result);
-      // Display result on the calculator display 
       set_calculator_display(formatted_result);
       set_is_calculation_complete(true);
     } catch (error) {
-      if (error.response?.data?.error) {
-        set_calculator_display('Error: ' + error.response.data.error);
-      } else {
-        set_calculator_display('Error');
-      }
+      set_calculator_display(error.response?.data?.error ? `Error: ${error.response.data.error}` : 'Error');
     }
+  }, [calculator_display, format_large_number]);
+
+  // Delete the last character from the display
+  const delete_last_character = () => {
+    set_calculator_display((prev) => (prev.length > 1 ? prev.slice(0, -1) : '0'));
   };
+
+  // Copy the result to clipboard
+  const copy_to_clipboard = () => {
+    navigator.clipboard.writeText(calculator_display);
+  };
+
+  // Handle keyboard inputs
+  useEffect(() => {
+    const handleKeyPress = (e) => {
+      if (e.key >= '0' && e.key <= '9') handle_number_input(e.key);
+      if (e.key === '+') handle_operation_click('add');
+      if (e.key === '-') handle_operation_click('subtract');
+      if (e.key === '*') handle_operation_click('multiply');
+      if (e.key === '/') handle_operation_click('divide');
+      if (e.key === 'Enter') calculate_result();
+      if (e.key === 'Backspace') delete_last_character();
+    };
+    window.addEventListener('keydown', handleKeyPress);
+    return () => window.removeEventListener('keydown', handleKeyPress);
+  }, [handle_number_input, handle_operation_click, calculate_result, delete_last_character]);
 
   return (
     <div className="calculator-box">
       <h1 className="calculator-title">CALCULATOR</h1>
       <div className="calculator">
-        {/* A display screen to display the operand, mathematical operation, and the calculated result */}
         <div className="display">
           <div className="operation">
-            {first_operand !== null && `${first_operand} ${current_operation ? get_operation_symbol(current_operation) : ''}`}
+            {first_operand !== null && `${first_operand} ${get_operation_symbol(current_operation)}`}
           </div>
           <div className="current-value">{calculator_display}</div>
-          {is_calculation_complete && (
-            <div className="result">
-              = {calculator_display}
-            </div>
-          )}
+          <div className="result">{is_calculation_complete && `= ${calculator_display}`}</div>
         </div>
 
-        {/* Display all the calculator buttons with 4 buttons on each row*/}
         <div className="buttons">
-          <button id="clear-button" onClick={clear_calculator}>C</button>
-          <button id="operation-button" onClick={() => perform_advanced_operation('sqrt')}>√</button>
-          <button id="operation-button" onClick={() => perform_advanced_operation('log')}>log</button>
-          <button id="operation-button" onClick={() => handle_operation_click('divide')}>÷</button>
-  
+          <button onClick={clear_calculator}>C</button>
+          <button onClick={() => perform_advanced_operation('sqrt')}>√</button>
+          <button onClick={() => perform_advanced_operation('log')}>log</button>
+          <button onClick={() => handle_operation_click('divide')}>÷</button>
+
           <button onClick={() => handle_number_input('7')}>7</button>
           <button onClick={() => handle_number_input('8')}>8</button>
           <button onClick={() => handle_number_input('9')}>9</button>
-          <button id="operation-button" onClick={() => handle_operation_click('multiply')}>×</button>
-  
+          <button onClick={() => handle_operation_click('multiply')}>×</button>
+
           <button onClick={() => handle_number_input('4')}>4</button>
           <button onClick={() => handle_number_input('5')}>5</button>
           <button onClick={() => handle_number_input('6')}>6</button>
-          <button id="operation-button" onClick={() => handle_operation_click('subtract')}>-</button>
-  
+          <button onClick={() => handle_operation_click('subtract')}>-</button>
+
           <button onClick={() => handle_number_input('1')}>1</button>
           <button onClick={() => handle_number_input('2')}>2</button>
           <button onClick={() => handle_number_input('3')}>3</button>
-          <button id="operation-button" onClick={() => handle_operation_click('add')}>+</button>
-          
-          <button onClick={toggle_sign}>+/-</button>
+          <button onClick={() => handle_operation_click('add')}>+</button>
+
+          <button onClick={copy_to_clipboard}>Copy</button>
           <button onClick={() => handle_number_input('0')}>0</button>
           <button onClick={() => handle_number_input('.')}>.</button>
-          <button id="equals-button" onClick={calculate_result}>=</button>
+          <button onClick={calculate_result}>=</button>
+
+          <button onClick={delete_last_character}>DEL</button>
+        </div>
+
+        <div className="history">
+          <h2>History</h2>
+          {history.map((entry, index) => (
+            <div key={index}>{entry}</div>
+          ))}
         </div>
       </div>
     </div>
