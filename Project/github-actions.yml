@@ -1,48 +1,126 @@
 # TODO: Define the Workflow Name
-name: 
+# name:
 
 # TODO: Define triggers for the workflow
+# on:
+# push:
+#   branches:
+# pull_request:
+#   branches:
+
+# jobs:
+# TODO: Define a job for building and testing the frontend
+# frontend:
+# runs-on: ubuntu-latest
+# steps:
+# TODO: Checkout code
+# TODO: Setup Node.js
+# TODO: Install dependencies
+# TODO: Run tests
+# TODO: Build the React app
+
+# TODO: Define a job for building and testing the backend
+# backend:
+# runs-on: ubuntu-latest
+# steps:
+# TODO: Checkout code
+# TODO: Setup Python
+# TODO: Install dependencies
+# TODO: Run tests
+
+# TODO: Define a job for building and pushing Docker images
+# docker:
+# Run this job only when 'frontend' & 'backend' stages are sucessfully completed
+# needs:
+# runs-on: ubuntu-latest
+# steps:
+# TODO: Checkout code
+# TODO: Setup Docker
+# TODO: Build frontend Docker image
+# TODO: Build backend Docker image
+# TODO: Push images to Docker Hub (if on main branch)
+
+# OPTIONAL: Define a deployment job (if applicable)
+# deploy:
+# needs: docker
+# runs-on: ubuntu-latest
+# steps:
+# TODO: Add deployment steps
+
+name: CI/CD Pipeline
+
 on:
-  # push:
-  #   branches: 
-  # pull_request:
-  #   branches: 
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
 
 jobs:
-  # TODO: Define a job for building and testing the frontend
   frontend:
     runs-on: ubuntu-latest
     steps:
-      # TODO: Checkout code
-      # TODO: Setup Node.js
-      # TODO: Install dependencies
-      # TODO: Run tests
-      # TODO: Build the React app
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-  # TODO: Define a job for building and testing the backend
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 14
+
+      - name: Install dependencies
+        run: |
+          cd frontend
+          npm install
+
+      - name: Build the React app
+        run: |
+          cd frontend
+          npm run build
+
   backend:
     runs-on: ubuntu-latest
     steps:
-      # TODO: Checkout code
-      # TODO: Setup Python
-      # TODO: Install dependencies
-      # TODO: Run tests
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-  # TODO: Define a job for building and pushing Docker images
+      - name: Setup Python
+        uses: actions/setup-python@v3
+        with:
+          python-version: 3.9
+
+      - name: Install dependencies
+        run: |
+          cd backend
+          pip install -r requirements.txt
+
+      - name: Run tests
+        run: |
+          cd backend
+          pytest
+
   docker:
-    # Run this job only when 'frontend' & 'backend' stages are sucessfully completed
-    needs: 
+    needs: [frontend, backend]
     runs-on: ubuntu-latest
     steps:
-      # TODO: Checkout code
-      # TODO: Setup Docker
-      # TODO: Build frontend Docker image
-      # TODO: Build backend Docker image
-      # TODO: Push images to Docker Hub (if on main branch)
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-  # OPTIONAL: Define a deployment job (if applicable)
+      - name: Setup Docker
+        uses: docker/setup-buildx-action@v2
+
+      - name: Build and push Docker images
+        run: |
+          docker build -t your-dockerhub-username/frontend ./frontend
+          docker build -t your-dockerhub-username/backend ./backend
+          echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+          docker push your-dockerhub-username/frontend
+          docker push your-dockerhub-username/backend
+
   deploy:
     needs: docker
     runs-on: ubuntu-latest
     steps:
-      # TODO: Add deployment steps
+      - name: Deploy application
+        run: echo "Deployment steps go here (e.g., SSH into server, pull Docker images)"

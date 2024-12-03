@@ -13,14 +13,12 @@
 <!-- Include explanation here -->
 <!-- NOTE: It is not compulsory to include detailed explanations, writing succint concise points would also sufice. Make sure maintain readability and clarity. -->
 
-
 - **Which files are you implmenting? and why?:**
 
 <!-- Include explanation here -->
 <!-- Include explanation here -->
 <!-- Include explanation here -->
 <!-- NOTE: It is not compulsory to include detailed explanations, writing succint concise points would also sufice. Make sure maintain readability and clarity. -->
-
 
 - _**Any other explanations for personal note taking.**_
 
@@ -29,14 +27,13 @@
 <!-- Include explanation here -->
 <!-- NOTE: It is not compulsory to include detailed explanations, writing succint concise points would also sufice. Make sure maintain readability and clarity. -->
 
-
 ### Docker Implementation
 
 **Explain your Dockerfiles:**
 
 - **Backend Dockerfile** (Python API):
-    - Here please explain the `Dockerfile` created for the Python Backend API. 
-    - This can be a simple explanation which serves as a reference guide, or revision to you when read back the readme in future. 
+  - Here please explain the `Dockerfile` created for the Python Backend API.
+  - This can be a simple explanation which serves as a reference guide, or revision to you when read back the readme in future.
 
 <!-- Include explanation here -->
 <!-- Include explanation here -->
@@ -44,7 +41,7 @@
 <!-- NOTE: It is not compulsory to include detailed explanations, writing succint concise points would also sufice. Make sure maintain readability and clarity. -->
 
 - **Frontend Dockerfile** (React App):
-    - Similar to the above section, please explain the Dockerfile created for the React Frontend Web Application. 
+  - Similar to the above section, please explain the Dockerfile created for the React Frontend Web Application.
 
 <!-- Include explanation here -->
 <!-- Include explanation here -->
@@ -53,7 +50,6 @@
 
 **Use this section to document your choices and steps for building the Docker images.**
 
-
 ### Docker Compose YAML Configuration
 
 **Break down your `docker-compose.yml` file:**
@@ -61,7 +57,7 @@
 - **Services:** List the services defined. What do they represent?
 - **Networking:** How do the services communicate with each other?
 - **Volumes:** Did you use any volume mounts for persistent data?
-- **Environment Variables:** Did you define any environment variables for configuration? 
+- **Environment Variables:** Did you define any environment variables for configuration?
 
 **Use this section to explain how your services interact and are configured within `docker-compose.yml`.**
 
@@ -70,7 +66,6 @@
 <!-- Include explanation here -->
 <!-- Include explanation here -->
 <!-- NOTE: It is not compulsory to include detailed explanations, writing succint concise points would also sufice. Make sure maintain readability and clarity. -->
-
 
 ### CI/CD Pipeline (YAML Configuration)
 
@@ -88,7 +83,6 @@
 <!-- Include explanation here -->
 <!-- NOTE: It is not compulsory to include detailed explanations, writing succint concise points would also sufice. Make sure maintain readability and clarity. -->
 
-
 ### CI/CD Pipeline (YAML Configuration)
 
 **Simply explain your CI/CD pipeline:**
@@ -105,17 +99,15 @@
 <!-- Include explanation here -->
 <!-- NOTE: It is not compulsory to include detailed explanations, writing succint concise points would also sufice. Make sure maintain readability and clarity. -->
 
-
 ### Assumptions
 
-- List any assumptions you made while creating the Dockerfiles, `docker-compose.yml`, or CI/CD pipeline. 
+- List any assumptions you made while creating the Dockerfiles, `docker-compose.yml`, or CI/CD pipeline.
 
 <!-- Include explanation here -->
 <!-- Include explanation here -->
 <!-- Include explanation here -->
 <!-- Include explanation here -->
 <!-- NOTE: It is not compulsory to include detailed explanations, writing succint concise points would also sufice. Make sure maintain readability and clarity. -->
-
 
 ### Lessons Learned
 
@@ -130,10 +122,9 @@
 <!-- Include explanation here -->
 <!-- NOTE: It is not compulsory to include detailed explanations, writing succint concise points would also sufice. Make sure maintain readability and clarity. -->
 
-
 ### Future Improvements
 
-- How could you improve your Dockerfiles, `docker-compose.yml`, or CI/CD pipeline? 
+- How could you improve your Dockerfiles, `docker-compose.yml`, or CI/CD pipeline?
 - (Optional-Just for personal reflection) Are there any additional functionalities you would like to consider for the calculator application to crate more stages in the CI/CD pipeline or add additional configuration in the Dockerfiles?
 
 **Use this section to brainstorm ways to enhance your project.**
@@ -143,10 +134,5 @@
 <!-- Include explanation here -->
 <!-- Include explanation here -->
 <!-- NOTE: It is not compulsory to include detailed explanations, writing succint concise points would also sufice. Make sure maintain readability and clarity. -->
-
-
-
-
-
 
 <!-- BEST OF LUCK! -->

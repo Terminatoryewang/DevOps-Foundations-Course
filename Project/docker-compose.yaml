@@ -1,15 +1,15 @@
 # This is just a template placeholder docker-compose file. Use relevant sections which are applicable, 
 # and feel free to customize.
-version: '3'
+# version: '3'
 
-services:
-  frontend:
+# services:
+  # frontend:
     # Specify the build context for the frontend
-    build:
+    # build:
     # Map the host port to the container port
-    ports:
+    # ports:
     # Specify dependencies (if applicable)
-    depends_on:
+    # depends_on:
 
     # Additional options (uncomment and configure as needed):
     
@@ -22,11 +22,11 @@ services:
     # Specify the command to run the development server (if different from Dockerfile)
     # command:
 
-  backend:
+  # backend:
     # Specify the build context for the backend
-    build:
+    # build:
     # Map the host port to the container port
-    ports:
+    # ports:
     
     # Additional options (uncomment and configure as needed):
     
@@ -45,3 +45,25 @@ services:
 
 # Define volumes (if applicable)
 # volumes:
+version: '3.8'
+
+services:
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "5000:5000"
+
+networks:
+  default:
+    driver: bridge

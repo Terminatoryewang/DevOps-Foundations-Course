@@ -1,38 +1,88 @@
 # TODO: Define stages for your pipeline
-stages:
+# stages:
 
 # TODO: Define variables (if needed)
-variables:
+# variables:
 
 # TODO: Define a job for building the frontend
-frontend-job:
-  stage: # TODO: Specify stage
-  image: # TODO: Specify Node.js image
-  script:
-    # TODO: Install dependencies
-    # TODO: Build the React app
+# frontend-job:
+# stage: # TODO: Specify stage
+# image: # TODO: Specify Node.js image
+# script:
+# TODO: Install dependencies
+# TODO: Build the React app
 
 # TODO: Define a job for building and testing the backend
-backend-job:
-  stage: # TODO: Specify stage
-  image: # TODO: Specify Python image
-  script:
-    # TODO: Install dependencies
-    # TODO: Run tests
+# backend-job:
+# stage: # TODO: Specify stage
+# image: # TODO: Specify Python image
+# script:
+# TODO: Install dependencies
+# TODO: Run tests
 
 # TODO: Define a job for building Docker images
+# docker-build:
+# stage: # TODO: Specify stage
+# image: docker:latest
+# services:
+# - docker:dind
+# script:
+# TODO: Build frontend Docker image
+# TODO: Build backend Docker image
+# TODO: Push images to Docker Hub (if on main branch)
+
+# OPTIONAL: Define a deployment job (if applicable)
+# deploy:
+# stage: # TODO: Specify stage
+# script:
+# TODO: Add deployment steps
+
+# GitLab CI/CD pipeline for frontend, backend, and Docker image builds
+
+stages:
+  - install
+  - build
+  - test
+  - docker-build
+  - deploy
+
+variables:
+  DOCKER_DRIVER: overlay2
+
+frontend-job:
+  stage: build
+  image: node:14-alpine
+  script:
+    - cd frontend
+    - npm install
+    - npm run build
+  artifacts:
+    paths:
+      - frontend/build
+
+backend-job:
+  stage: test
+  image: python:3.9-slim
+  script:
+    - cd backend
+    - pip install -r requirements.txt
+    - pytest
+
 docker-build:
-  stage: # TODO: Specify stage
+  stage: docker-build
   image: docker:latest
   services:
     - docker:dind
   script:
-    # TODO: Build frontend Docker image
-    # TODO: Build backend Docker image
-    # TODO: Push images to Docker Hub (if on main branch)
+    - docker build -t your-dockerhub-username/frontend ./frontend
+    - docker build -t your-dockerhub-username/backend ./backend
+    - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+    - docker push your-dockerhub-username/frontend
+    - docker push your-dockerhub-username/backend
+  only:
+    - main
 
-# OPTIONAL: Define a deployment job (if applicable)
 deploy:
-  stage: # TODO: Specify stage
+  stage: deploy
   script:
-    # TODO: Add deployment steps
+    - echo "Deployment steps go here (e.g., SSH into server, pull new Docker images)"

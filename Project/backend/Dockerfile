@@ -13,3 +13,17 @@
 # Run app.py when the container launches
 
 # End of File
+
+FROM python:3.9-slim
+
+WORKDIR /app
+
+COPY . .
+
+RUN pip install --no-cache-dir -r requirements.txt
+
+EXPOSE 5000
+
+ENV FLASK_ENV=production
+
+CMD ["python", "app.py"]
